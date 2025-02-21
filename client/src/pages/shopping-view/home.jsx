@@ -265,7 +265,7 @@ import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { getFeatureImages } from "@/store/common-slice";
 
 import VideoSection from "../../components/admin-view/VideoSection";
-import Deepika from "@/components/admin-view/deepika";
+import Deepika from "@/components/admin-view/Deepika";
 
 
 
