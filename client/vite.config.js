@@ -13,7 +13,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://look-good-server.vercel.app",
+        target: "http://localhost:5000",
         changeOrigin: true,
         secure: false,
       },
