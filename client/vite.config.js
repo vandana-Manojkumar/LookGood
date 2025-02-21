@@ -13,7 +13,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://look-good-server.vercel.app",
+        target: "https://lookgood.onrender.com",
         changeOrigin: true,
         secure: false,
       },

@@ -52,7 +52,7 @@ function ProductImageUpload({
     const data = new FormData();
     data.append("my_file", imageFile);
     const response = await axios.post(
-      `https://look-good-server.vercel.app/api/admin/products/upload-image`,
+      `https://lookgood.onrender.com/api/admin/products/upload-image`,
       data
     );
     console.log(response, "response");
