@@ -34,12 +34,12 @@ function Deepika() {
           <div className="absolute inset-0 flex items-end justify-end p-10 bg-black/40">
             <button
               className="bg-white/10 hover:bg-white/20 text-white border border-white px-6 py-2 rounded-lg transition"
-              onClick={() => handleNavigateToListingPage( {
-                id: "puma",
-                label: "Puma",
+              onClick={() => handleNavigateToListingPage({
+                id: "levi",
+                label: "Levi's",
                 logo: <img 
-                  src="/images/puma-logo-and-art-free-vector.jpg" 
-                  alt="Puma logo"
+                  src="/images/download (2).png" 
+                  alt="Levi's logo"
                   className="w-24 h-12 object-contain"
                 />
               }, "brand")}
