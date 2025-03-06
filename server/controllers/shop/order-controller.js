@@ -13,6 +13,7 @@ const createOrder = async (req, res) => {
       paymentMethod,
       paymentStatus,
       totalAmount,
+      discount,
       orderDate,
       orderUpdateDate,
       paymentId,
@@ -20,14 +21,24 @@ const createOrder = async (req, res) => {
       cartId,
     } = req.body;
 
+    // Calculate the subtotal by summing all items
+    const itemsSubtotal = cartItems.reduce((sum, item) => {
+      return sum + (item.price * item.quantity);
+    }, 0);
+    
+    // Ensure values have exactly 2 decimal places for PayPal
+    const formattedSubtotal = (Math.round(itemsSubtotal * 100) / 100).toFixed(2);
+    const formattedDiscount = discount ? (Math.round(discount * 100) / 100).toFixed(2) : "0.00";
+    const formattedTotal = (Math.round(totalAmount * 100) / 100).toFixed(2);
+
     const create_payment_json = {
       intent: "sale",
       payer: {
         payment_method: "paypal",
       },
       redirect_urls: {
-        return_url: "https://look-good.vercel.app/shop/paypal-return",
-        cancel_url: "https://look-good.vercel.app/shop/paypal-cancel",
+        return_url: "http://localhost:5173/shop/paypal-return",
+        cancel_url: "http://localhost:5173/shop/paypal-cancel",
       },
       transactions: [
         {
@@ -35,23 +46,29 @@ const createOrder = async (req, res) => {
             items: cartItems.map((item) => ({
               name: item.title,
               sku: item.productId,
-              price: item.price.toFixed(2),
+              price: (Math.round(item.price * 100) / 100).toFixed(2),
               currency: "USD",
               quantity: item.quantity,
             })),
           },
           amount: {
             currency: "USD",
-            total: totalAmount.toFixed(2),
+            total: formattedTotal,
+            details: {
+              subtotal: formattedSubtotal,
+              discount: formattedDiscount
+            }
           },
-          description: "description",
+          description: "Your order with discount applied",
         },
       ],
     };
 
+    console.log("PayPal payment JSON:", JSON.stringify(create_payment_json, null, 2));
+
     paypal.payment.create(create_payment_json, async (error, paymentInfo) => {
       if (error) {
-        console.log(error);
+        console.error("PayPal API Error:", JSON.stringify(error, null, 2));
 
         return res.status(500).json({
           success: false,
@@ -67,6 +84,7 @@ const createOrder = async (req, res) => {
           paymentMethod,
           paymentStatus,
           totalAmount,
+          discount,
           orderDate,
           orderUpdateDate,
           paymentId,
@@ -87,10 +105,10 @@ const createOrder = async (req, res) => {
       }
     });
   } catch (e) {
-    console.log(e);
+    console.error(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message: "Some error occurred!",
     });
   }
 };
