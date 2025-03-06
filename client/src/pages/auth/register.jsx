@@ -1,5 +1,3 @@
-
-
 import CommonForm from "@/components/common/form";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,9 +37,9 @@ function AuthRegister() {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center bg-gradient-to-r px-4 overflow-auto">
-      <div className="ml-auto mr-32">
-        <Card className="w-[480px] shadow-2xl rounded-3xl p-8 bg-white relative">
+    <div className="fixed inset-0 min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="w-full max-w-[480px] px-4">
+        <Card className="shadow-2xl rounded-3xl p-8 bg-white relative">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-300 to-purple-400 opacity-10 rounded-3xl"></div>
           <CardHeader className="text-center relative z-10">
             <CardTitle className="text-4xl font-extrabold text-foreground">
@@ -58,7 +56,7 @@ function AuthRegister() {
             </p>
           </CardHeader>
           <CardContent className="relative z-10">
-            <CommonForm 
+            <CommonForm
               formControls={registerFormControls}
               buttonText={"Sign Up"}
               formData={formData}
@@ -75,5 +73,3 @@ function AuthRegister() {
 }
 
 export default AuthRegister;
-
-

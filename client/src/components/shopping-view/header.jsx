@@ -24,8 +24,9 @@ import UserCartWrapper from "./cart-wrapper";
 import { useEffect, useState } from "react";
 import { fetchCartItems } from "@/store/shop/cart-slice";
 import { Label } from "../ui/label";
+import { X } from 'lucide-react';
 
-function MenuItems() {
+const MenuItems = ({ onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -33,79 +34,49 @@ function MenuItems() {
   const [clickedItem, setClickedItem] = useState(null);
 
   function handleNavigate(getCurrentMenuItem) {
+    // Remove existing filters
     sessionStorage.removeItem("filters");
+
+    // Set new filter if applicable
     const currentFilter =
       getCurrentMenuItem.id !== "home" &&
       getCurrentMenuItem.id !== "products" &&
       getCurrentMenuItem.id !== "search"
-        ? {
-            category: [getCurrentMenuItem.id]
-          }
+        ? { category: [getCurrentMenuItem.id] }
         : null;
 
-    sessionStorage.setItem("filters", JSON.stringify(currentFilter));
+    if (currentFilter) {
+      sessionStorage.setItem("filters", JSON.stringify(currentFilter));
+    }
 
+    // Handle navigation and menu closing
     if (location.pathname.includes("listing") && currentFilter !== null) {
-      setSearchParams(new URLSearchParams(`?category=${getCurrentMenuItem.id}`));
+      setSearchParams({ category: getCurrentMenuItem.id });
+      // Ensure menu closes
+      if (onClose) {
+        onClose();
+      }
     } else {
       navigate(getCurrentMenuItem.path);
+      // Ensure menu closes
+      if (onClose) {
+        onClose();
+      }
     }
-    
-    setClickedItem(getCurrentMenuItem.id);
-    setTimeout(() => setClickedItem(null), 500); // Reset clicked state after animation
-  }
 
+    setClickedItem(getCurrentMenuItem.id);
+    setTimeout(() => setClickedItem(null), 500);
+  }
   return (
-    <nav className="flex flex-col mb-3 lg:mb-0 lg:items-center gap-6 lg:flex-row">
+<nav className="flex flex-col mb-3 lg:mb-0 lg:items-center gap-6 lg:flex-row">
   {shoppingViewHeaderMenuItems.map((menuItem) => (
-    <div
+    <Label
+      onClick={() => handleNavigate(menuItem)}
+      className="text-sm font-bold  cursor-pointer  hover:text-red-500 transition-colors duration-150"
       key={menuItem.id}
-      className="relative"
-      onMouseEnter={() => setHoveredItem(menuItem.id)}
-      onMouseLeave={() => setHoveredItem(null)}
     >
-      <Label
-        onClick={() => handleNavigate(menuItem)}
-        className={`
-          text-sm font-bold cursor-pointer 
-          transition-all duration-300 flex items-center gap-1
-          relative px-4 py-2 rounded-md
-          overflow-hidden
-          ${hoveredItem === menuItem.id ? 'text-white' : 'text-gray-1000'} 
-          ${clickedItem === menuItem.id ? 'scale-95' : 'scale-150'}
-        `}
-      >
-        {/* Hover background effect */}
-        <span
-          className={`
-            absolute inset-0 bg-primary
-            transition-all duration-300 ease-out
-            ${hoveredItem === menuItem.id ? 'opacity-100' : 'opacity-0'}
-            ${hoveredItem === menuItem.id ? 'scale-100' : 'scale-0'}
-            rounded-md
-          `}
-          style={{
-            transform: hoveredItem === menuItem.id ? 'scale(1)' : 'scale(0.7)',
-            transformOrigin: 'center'
-          }}
-        />
-        
-        {/* Menu item text */}
-        <span className="relative z-10">
-          {menuItem.label}
-        </span>
-        
-        {/* Glow effect */}
-        <span
-          className={`
-            absolute inset-0 bg-primary/20 blur-lg
-            transition-all duration-300
-            ${hoveredItem === menuItem.id ? 'opacity-100' : 'opacity-0'}
-            ${clickedItem === menuItem.id ? 'scale-110' : 'scale-0'}
-          `}
-        />
-      </Label>
-    </div>
+      {menuItem.label}
+    </Label>
   ))}
 </nav>
   );
@@ -216,68 +187,68 @@ function ShoppingHeader() {
   
       {/* 🔥 Enhanced Dark Text + Neon Glow Effects */}
       <style>
-        {`
-          /* LookGood Text Styling */
-          .lookgood-text {
-            font-size: 1.8rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-            color: black;
-            position: relative;
-          }
-  
-          /* Multi-Layered Glow & Shadow */
-          .lookgood-text::before {
-            content: "LookGood";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            color: black;
-            text-shadow:
-              0px 0px 5px rgba(255, 255, 255, 0.3),
-              0px 0px 10px rgba(255, 255, 255, 0.4),
-              -3px 3px 5px rgba(0, 0, 0, 0.7),
-              3px -3px 5px rgba(0, 0, 0, 0.7),
-              0px 0px 20px rgba(0, 0, 0, 0.8);
-          }
-  
-          /* Neon Shadow Animation */
-          .lookgood-text::after {
-            content: "LookGood";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            color: black;
-            text-shadow:
-              0px 0px 5px rgba(0, 0, 0, 0.6),
-              0px 0px 15px rgba(0, 0, 0, 0.5),
-              0px 0px 30px rgba(0, 0, 0, 0.4);
-            animation: darkGlow 1.5s infinite alternate ease-in-out;
-          }
-  
-          /* Animation for a pulsing glow */
-          @keyframes darkGlow {
-            0% {
-              text-shadow:
-                0px 0px 10px rgba(0, 0, 0, 0.7),
-                0px 0px 20px rgba(0, 0, 0, 0.6),
-                0px 0px 30px rgba(0, 0, 0, 0.5);
-            }
-            100% {
-              text-shadow:
-                0px 0px 15px rgba(0, 0, 0, 0.8),
-                0px 0px 25px rgba(0, 0, 0, 0.7),
-                0px 0px 35px rgba(0, 0, 0, 0.6);
-            }
-          }
-        `}
-      </style>
+  {`
+    /* LookGood Text Styling */
+    .lookgood-text {
+      font-size: 1.8rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      color: #cc0000; /* Softer red */
+      position: relative;
+      text-shadow: 
+        0px 0px 3px rgba(255, 0, 0, 0.4),
+        0px 0px 6px rgba(255, 0, 0, 0.5);
+    }
+
+    /* Soft White Glow */
+    .lookgood-text::before {
+      content: "LookGood";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      color: white;
+      text-shadow:
+        -2px 2px 4px rgba(255, 255, 255, 0.7),
+        2px -2px 4px rgba(255, 255, 255, 0.7),
+        0px 0px 8px rgba(255, 255, 255, 0.6);
+    }
+
+    /* Subtle Animated Glow */
+    .lookgood-text::after {
+      content: "LookGood";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      color: #cc0000; /* Softer red */
+      text-shadow:
+        0px 0px 4px rgba(255, 0, 0, 0.5),
+        0px 0px 10px rgba(255, 0, 0, 0.4),
+        0px 0px 16px rgba(255, 0, 0, 0.3);
+      animation: softGlow 1.5s infinite alternate ease-in-out;
+    }
+
+    /* Animation for a subtle white-red glow */
+    @keyframes softGlow {
+      0% {
+        text-shadow:
+          0px 0px 5px rgba(255, 255, 255, 0.6),
+          0px 0px 12px rgba(255, 255, 255, 0.5);
+      }
+      100% {
+        text-shadow:
+          0px 0px 8px rgba(255, 255, 255, 0.7),
+          0px 0px 15px rgba(255, 255, 255, 0.6);
+      }
+    }
+  `}
+</style>
+
     </header>
   );
   
