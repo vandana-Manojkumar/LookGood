@@ -244,10 +244,6 @@
 
 
 
-
-
-
-
 import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -394,6 +390,7 @@ function ShoppingHome() {
       [section]: [getCurrentItem.id],
     };
     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
+    window.scrollTo(0, 0);
     navigate(`/shop/listing`);
   }
 
@@ -425,7 +422,7 @@ function ShoppingHome() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length);
-    }, 4000);
+    }, 3000);
     return () => clearInterval(timer);
   }, [featureImageList]);
 
@@ -444,19 +441,21 @@ function ShoppingHome() {
 
   return (
     
+
     <div className="flex flex-col min-h-screen">
       {/* Hero Slider Section */}
-      <div className="relative w-full h-[600px] overflow-hidden">
+      <div className="  relative w-full h-auto min-h-[250px] sm:min-h-[350px] md:min-h-[500px] lg:min-h-[600px] overflow-hidden ">
         {featureImageList && featureImageList.length > 0
           ? featureImageList.map((slide, index) => (
-              <img
-                src={slide?.image}
-                key={index}
-                className={`${
-                  index === currentSlide ? "opacity-100" : "opacity-0"
-                } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
-                alt={`Slide ${index + 1}`}
-              />
+            <img
+            src={slide?.image}
+            key={index}
+            className={`${
+              index === currentSlide ? "opacity-100" : "opacity-0"
+            } absolute top-0 left-0 w-full h-full object-contain transition-opacity duration-1000`}
+            alt={`Slide ${index + 1}`}
+          />
+          
             ))
           : null}
         <Button
@@ -469,7 +468,7 @@ function ShoppingHome() {
                 featureImageList.length
             )
           }
-          className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80"
+          className="absolute top-1/2 left-2 sm:left-4 transform -translate-y-1/2 bg-white/80 w-8 h-8 sm:w-10 sm:h-10"
         >
           <ChevronLeftIcon className="w-4 h-4" />
         </Button>
@@ -481,13 +480,17 @@ function ShoppingHome() {
               (prevSlide) => (prevSlide + 1) % featureImageList.length
             )
           }
-          className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80"
+          className="absolute top-1/2 right-2 sm:right-4 transform -translate-y-1/2 bg-white/80 w-8 h-8 sm:w-10 sm:h-10"
         >
           <ChevronRightIcon className="w-4 h-4" />
         </Button>
       </div>
 
 
+
+
+
+{/* 1st vedio section */}
 
       
       <div>
@@ -546,7 +549,7 @@ function ShoppingHome() {
 
 
 
-            
+   {/* 2nd vedio section     */}
       <div>
       <Deepika />
     </div>

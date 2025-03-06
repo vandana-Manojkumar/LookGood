@@ -23,6 +23,7 @@ import PaypalReturnPage from "./pages/shopping-view/paypal-return";
 import PaymentSuccessPage from "./pages/shopping-view/payment-success";
 import SearchProducts from "./pages/shopping-view/search";
 
+
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
     (state) => state.auth
@@ -33,7 +34,28 @@ function App() {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  if (isLoading) return <Skeleton className="w-[800] bg-black h-[600px]" />;
+  // if (isLoading) return <Skeleton className="w-[800] bg-black h-[600px]" />;
+  
+  if (isLoading)
+    return (
+      <div className="fixed inset-0 flex items-center justify-center w-screen h-screen bg-black">
+        <div className="flex space-x-2">
+          <div className="w-5 h-5 bg-white rounded-full animate-[wave_1.5s_ease-in-out_infinite]"></div>
+          <div className="w-5 h-5 bg-white rounded-full animate-[wave_1.5s_ease-in-out_infinite] [animation-delay:0.2s]"></div>
+          <div className="w-5 h-5 bg-white rounded-full animate-[wave_1.5s_ease-in-out_infinite] [animation-delay:0.4s]"></div>
+        </div>
+  
+        <style>
+          {`
+            @keyframes wave {
+              0%, 100% { transform: translateY(0); opacity: 0.3; }
+              50% { transform: translateY(-10px); opacity: 1; }
+            }
+          `}
+        </style>
+      </div>
+    );
+  
 
   console.log(isLoading, user);
 

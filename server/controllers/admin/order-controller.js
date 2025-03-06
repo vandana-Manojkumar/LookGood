@@ -24,6 +24,7 @@ const getAllOrdersOfAllUsers = async (req, res) => {
   }
 };
 
+
 const getOrderDetailsForAdmin = async (req, res) => {
   try {
     const { id } = req.params;
@@ -49,6 +50,7 @@ const getOrderDetailsForAdmin = async (req, res) => {
     });
   }
 };
+
 
 const updateOrderStatus = async (req, res) => {
   try {
