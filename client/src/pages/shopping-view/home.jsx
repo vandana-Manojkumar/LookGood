@@ -442,7 +442,7 @@ function ShoppingHome() {
   return (
     
 
-    <div className="flex flex-col min-h-screen">
+    <div className="mt-20 flex flex-col min-h-screen">
       {/* Hero Slider Section */}
       <div className="  relative w-full h-auto min-h-[250px] sm:min-h-[350px] md:min-h-[500px] lg:min-h-[600px] overflow-hidden ">
         {featureImageList && featureImageList.length > 0
