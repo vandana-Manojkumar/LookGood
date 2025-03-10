@@ -22,7 +22,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "http://localhost:5173"
+          "value": "https://look-good.vercel.app"
         },
         {
           "key": "Access-Control-Allow-Methods",

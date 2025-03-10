@@ -1,3 +1,5 @@
+
+
 const paypal = require("../../helpers/paypal");
 const Order = require("../../models/Order");
 const Cart = require("../../models/Cart");
@@ -13,6 +15,9 @@ const createOrder = async (req, res) => {
       paymentMethod,
       paymentStatus,
       totalAmount,
+      discount,
+      promoCode,
+      freeGift,
       orderDate,
       orderUpdateDate,
       paymentId,
@@ -20,14 +25,15 @@ const createOrder = async (req, res) => {
       cartId,
     } = req.body;
 
+    // Create the PayPal payment JSON structure
     const create_payment_json = {
       intent: "sale",
       payer: {
         payment_method: "paypal",
       },
       redirect_urls: {
-        return_url: "http://localhost:5173/shop/paypal-return",
-        cancel_url: "http://localhost:5173/shop/paypal-cancel",
+        return_url: "https://look-good.vercel.app/shop/paypal-return",
+        cancel_url: "https://look-good.vercel.app/shop/paypal-cancel",
       },
       transactions: [
         {
@@ -43,21 +49,26 @@ const createOrder = async (req, res) => {
           amount: {
             currency: "USD",
             total: totalAmount.toFixed(2),
+            details: {
+              subtotal: (totalAmount + (discount || 0)).toFixed(2),
+              discount: discount ? discount.toFixed(2) : "0.00"
+            }
           },
-          description: "description",
+          description: promoCode ? `Order with promo: ${promoCode}` : "Order description",
         },
       ],
     };
 
     paypal.payment.create(create_payment_json, async (error, paymentInfo) => {
       if (error) {
-        console.log(error);
+        console.log("PayPal error:", error);
 
         return res.status(500).json({
           success: false,
           message: "Error while creating paypal payment",
         });
       } else {
+        // Create the new Order document with the additional fields
         const newlyCreatedOrder = new Order({
           userId,
           cartId,
@@ -67,6 +78,9 @@ const createOrder = async (req, res) => {
           paymentMethod,
           paymentStatus,
           totalAmount,
+          discount,       // Add the discount field
+          promoCode,      // Add the promo code field
+          freeGift,       // Add the free gift field
           orderDate,
           orderUpdateDate,
           paymentId,
@@ -87,10 +101,11 @@ const createOrder = async (req, res) => {
       }
     });
   } catch (e) {
-    console.log(e);
+    console.log("Server error:", e);
     res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message: "Some error occurred!",
+      error: e.message
     });
   }
 };
@@ -104,7 +119,7 @@ const capturePayment = async (req, res) => {
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: "Order can not be found",
+        message: "Order cannot be found",
       });
     }
 
@@ -113,23 +128,34 @@ const capturePayment = async (req, res) => {
     order.paymentId = paymentId;
     order.payerId = payerId;
 
+    // Process each item in the order
     for (let item of order.cartItems) {
       let product = await Product.findById(item.productId);
 
       if (!product) {
         return res.status(404).json({
           success: false,
-          message: `Not enough stock for this product ${product.title}`,
+          message: `Product not found: ${item.productId}`,
         });
       }
 
-      product.totalStock -= item.quantity;
+      if (product.totalStock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Not enough stock for product: ${product.title}`,
+        });
+      }
 
+      // Reduce the stock
+      product.totalStock -= item.quantity;
       await product.save();
     }
 
+    // Remove the cart after successful payment
     const getCartId = order.cartId;
-    await Cart.findByIdAndDelete(getCartId);
+    if (getCartId) {
+      await Cart.findByIdAndDelete(getCartId);
+    }
 
     await order.save();
 
@@ -139,10 +165,11 @@ const capturePayment = async (req, res) => {
       data: order,
     });
   } catch (e) {
-    console.log(e);
+    console.log("Payment capture error:", e);
     res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message: "Error capturing payment",
+      error: e.message
     });
   }
 };
@@ -151,7 +178,7 @@ const getAllOrdersByUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const orders = await Order.find({ userId });
+    const orders = await Order.find({ userId }).sort({ orderDate: -1 });
 
     if (!orders.length) {
       return res.status(404).json({
@@ -168,7 +195,7 @@ const getAllOrdersByUser = async (req, res) => {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message: "Some error occurred!",
     });
   }
 };
@@ -194,7 +221,7 @@ const getOrderDetails = async (req, res) => {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message: "Some error occurred!",
     });
   }
 };

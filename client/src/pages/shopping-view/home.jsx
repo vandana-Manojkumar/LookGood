@@ -261,7 +261,6 @@ import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { getFeatureImages } from "@/store/common-slice";
 
 import VideoSection from "../../components/admin-view/VideoSection";
-import Deepika from "@/components/admin-view/Deepika";
 
 
 
@@ -373,6 +372,7 @@ const brandsWithLogos = [
   
 
 function ShoppingHome() {
+  const [uniqueKeys, setUniqueKeys] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
@@ -439,6 +439,13 @@ function ShoppingHome() {
     dispatch(getFeatureImages());
   }, [dispatch]);
 
+  useEffect(() => {
+    dispatch(getFeatureImages());
+  }, [dispatch]);
+  useEffect(() => {
+    setUniqueKeys([Date.now(), Date.now() + 1]);
+  }, []);
+
   return (
     
 
@@ -493,9 +500,9 @@ function ShoppingHome() {
 {/* 1st vedio section */}
 
       
-      <div>
-      <VideoSection />
-    </div>
+<div>
+        <VideoSection uniqueKey={uniqueKeys[0]} numAds={1} />
+      </div>
 
 
 
@@ -550,9 +557,9 @@ function ShoppingHome() {
 
 
    {/* 2nd vedio section     */}
-      <div>
-      <Deepika />
-    </div>
+   <div>
+        <VideoSection uniqueKey={uniqueKeys[1]} numAds={1} />
+      </div>
 
 
 

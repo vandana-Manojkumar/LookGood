@@ -32,8 +32,6 @@ function createSearchParamsHelper(filterParams) {
     }
   }
 
-  console.log(queryParams, "queryParams");
-
   return queryParams.join("&");
 }
 
@@ -51,6 +49,13 @@ function ShoppingListing() {
   const { toast } = useToast();
 
   const categorySearchParam = searchParams.get("category");
+
+  // Fetch cart items whenever the component mounts or filters change
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchCartItems(user.id));
+    }
+  }, [dispatch, user, filters]);
 
   function handleSort(value) {
     setSort(value);
@@ -79,44 +84,50 @@ function ShoppingListing() {
   }
 
   function handleGetProductDetails(getCurrentProductId) {
-    console.log(getCurrentProductId);
     dispatch(fetchProductDetails(getCurrentProductId));
   }
 
   function handleAddtoCart(getCurrentProductId, getTotalStock) {
-    console.log(cartItems);
-    let getCartItems = cartItems.items || [];
-
-    if (getCartItems.length) {
-      const indexOfCurrentItem = getCartItems.findIndex(
+    // Always fetch cart items first to ensure we have the latest data
+    dispatch(fetchCartItems(user?.id)).then((fetchResult) => {
+      // Get latest cart items from the fresh fetch result
+      const latestCartItems = fetchResult?.payload?.items || [];
+      
+      // Find if product exists in cart
+      const existingCartItem = latestCartItems.find(
         (item) => item.productId === getCurrentProductId
       );
-      if (indexOfCurrentItem > -1) {
-        const getQuantity = getCartItems[indexOfCurrentItem].quantity;
-        if (getQuantity + 1 > getTotalStock) {
+      
+      // Check if adding one more exceeds stock
+      if (existingCartItem && existingCartItem.quantity + 1 > getTotalStock) {
+        toast({
+          title: `Only ${getTotalStock} quantity available for this item`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Add to cart if stock allows
+      dispatch(
+        addToCart({
+          userId: user?.id,
+          productId: getCurrentProductId,
+          quantity: 1,
+        })
+      ).then((data) => {
+        if (data?.payload?.success) {
+          // Fetch updated cart
+          dispatch(fetchCartItems(user?.id));
           toast({
-            title: `Only ${getQuantity} quantity can be added for this item`,
+            title: "Product is added to cart",
+          });
+        } else {
+          toast({
+            title: "Failed to add product to cart",
             variant: "destructive",
           });
-
-          return;
         }
-      }
-    }
-
-    dispatch(
-      addToCart({
-        userId: user?.id,
-        productId: getCurrentProductId,
-        quantity: 1,
-      })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
-        toast({
-          title: "Product is added to cart",
-        });
-      }
+      });
     });
   }
 
@@ -133,17 +144,16 @@ function ShoppingListing() {
   }, [filters]);
 
   useEffect(() => {
-    if (filters !== null && sort !== null)
+    if (filters !== null && sort !== null) {
       dispatch(
         fetchAllFilteredProducts({ filterParams: filters, sortParams: sort })
       );
+    }
   }, [dispatch, sort, filters]);
 
   useEffect(() => {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
-
-  console.log(productList, "productListproductListproductList");
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
@@ -185,6 +195,7 @@ function ShoppingListing() {
           {productList && productList.length > 0
             ? productList.map((productItem) => (
                 <ShoppingProductTile
+                  key={productItem.id || productItem._id}
                   handleGetProductDetails={handleGetProductDetails}
                   product={productItem}
                   handleAddtoCart={handleAddtoCart}
@@ -203,20 +214,3 @@ function ShoppingListing() {
 }
 
 export default ShoppingListing;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
