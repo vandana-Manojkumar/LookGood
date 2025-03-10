@@ -18,6 +18,9 @@ const createOrder = async (req, res) => {
       discount,
       promoCode,
       freeGift,
+      discount,
+      promoCode,
+      freeGift,
       orderDate,
       orderUpdateDate,
       paymentId,
@@ -25,6 +28,7 @@ const createOrder = async (req, res) => {
       cartId,
     } = req.body;
 
+    // Create the PayPal payment JSON structure
     // Create the PayPal payment JSON structure
     const create_payment_json = {
       intent: "sale",
@@ -53,7 +57,12 @@ const createOrder = async (req, res) => {
               subtotal: (totalAmount + (discount || 0)).toFixed(2),
               discount: discount ? discount.toFixed(2) : "0.00"
             }
+            details: {
+              subtotal: (totalAmount + (discount || 0)).toFixed(2),
+              discount: discount ? discount.toFixed(2) : "0.00"
+            }
           },
+          description: promoCode ? `Order with promo: ${promoCode}` : "Order description",
           description: promoCode ? `Order with promo: ${promoCode}` : "Order description",
         },
       ],
@@ -62,12 +71,14 @@ const createOrder = async (req, res) => {
     paypal.payment.create(create_payment_json, async (error, paymentInfo) => {
       if (error) {
         console.log("PayPal error:", error);
+        console.log("PayPal error:", error);
 
         return res.status(500).json({
           success: false,
           message: "Error while creating paypal payment",
         });
       } else {
+        // Create the new Order document with the additional fields
         // Create the new Order document with the additional fields
         const newlyCreatedOrder = new Order({
           userId,
@@ -78,6 +89,9 @@ const createOrder = async (req, res) => {
           paymentMethod,
           paymentStatus,
           totalAmount,
+          discount,       // Add the discount field
+          promoCode,      // Add the promo code field
+          freeGift,       // Add the free gift field
           discount,       // Add the discount field
           promoCode,      // Add the promo code field
           freeGift,       // Add the free gift field
@@ -102,8 +116,11 @@ const createOrder = async (req, res) => {
     });
   } catch (e) {
     console.log("Server error:", e);
+    console.log("Server error:", e);
     res.status(500).json({
       success: false,
+      message: "Some error occurred!",
+      error: e.message
       message: "Some error occurred!",
       error: e.message
     });
@@ -120,6 +137,7 @@ const capturePayment = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Order cannot be found",
+        message: "Order cannot be found",
       });
     }
 
@@ -128,6 +146,7 @@ const capturePayment = async (req, res) => {
     order.paymentId = paymentId;
     order.payerId = payerId;
 
+    // Process each item in the order
     // Process each item in the order
     for (let item of order.cartItems) {
       let product = await Product.findById(item.productId);
@@ -143,16 +162,29 @@ const capturePayment = async (req, res) => {
         return res.status(400).json({
           success: false,
           message: `Not enough stock for product: ${product.title}`,
+          message: `Product not found: ${item.productId}`,
         });
       }
 
+      if (product.totalStock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Not enough stock for product: ${product.title}`,
+        });
+      }
+
+      // Reduce the stock
       // Reduce the stock
       product.totalStock -= item.quantity;
       await product.save();
     }
 
     // Remove the cart after successful payment
+    // Remove the cart after successful payment
     const getCartId = order.cartId;
+    if (getCartId) {
+      await Cart.findByIdAndDelete(getCartId);
+    }
     if (getCartId) {
       await Cart.findByIdAndDelete(getCartId);
     }
@@ -166,8 +198,11 @@ const capturePayment = async (req, res) => {
     });
   } catch (e) {
     console.log("Payment capture error:", e);
+    console.log("Payment capture error:", e);
     res.status(500).json({
       success: false,
+      message: "Error capturing payment",
+      error: e.message
       message: "Error capturing payment",
       error: e.message
     });
@@ -178,6 +213,7 @@ const getAllOrdersByUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
+    const orders = await Order.find({ userId }).sort({ orderDate: -1 });
     const orders = await Order.find({ userId }).sort({ orderDate: -1 });
 
     if (!orders.length) {
@@ -195,6 +231,7 @@ const getAllOrdersByUser = async (req, res) => {
     console.log(e);
     res.status(500).json({
       success: false,
+      message: "Some error occurred!",
       message: "Some error occurred!",
     });
   }
@@ -221,6 +258,7 @@ const getOrderDetails = async (req, res) => {
     console.log(e);
     res.status(500).json({
       success: false,
+      message: "Some error occurred!",
       message: "Some error occurred!",
     });
   }
