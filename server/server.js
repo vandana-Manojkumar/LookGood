@@ -30,7 +30,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: "https://look-good.vercel.app/",
+  origin: "https://look-good.vercel.app",
   methods: ["GET", "POST", "DELETE", "PUT"],
   allowedHeaders: [
     "Content-Type",
