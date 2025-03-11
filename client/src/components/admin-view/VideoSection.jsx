@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { VolumeX, Volume2 } from "lucide-react";
-const backendUrl = "http://localhost:5000"
+const backendUrl = "https://lookgood.onrender.com"
 
 function VideoSection({ uniqueKey, numAds }) {
   const navigate = useNavigate();
@@ -67,14 +67,14 @@ function VideoSection({ uniqueKey, numAds }) {
               <source src={ad.videoUrl} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
-            <div className="absolute top-4 right-4">
+            {/* <div className="absolute top-4 right-4">
               <button
                 className="bg-white/10 hover:bg-white/20 text-white border border-white px-6 py-2 rounded-lg transition mb-4"
                 onClick={() => handleMuteToggle(ad._id)}
               >
                 {videoRefs.current[ad._id]?.muted ? <VolumeX size={24} /> : <Volume2 size={24} />}
               </button>
-            </div>
+            </div> */}
             <div className="absolute inset-0 flex items-end justify-end p-10 bg-black/40">
               <button
                 className="bg-white/10 hover:bg-white/20 text-white border border-white px-6 py-2 rounded-lg transition mb-4"

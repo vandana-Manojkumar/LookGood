@@ -279,14 +279,13 @@
 
 
 
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { 
   CheckCircle, Package, Truck, ShoppingBag, Calendar, 
   MapPin, Box, Clock, X, ShoppingCart, ArrowRight, Star,
-  Share2, Download, Gift, Heart, Filter, Smartphone, Mail
+  Share2, Gift, Heart, Filter, Smartphone, Mail
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -296,6 +295,10 @@ function PaymentSuccessPage() {
   const [showReviewPrompt, setShowReviewPrompt] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [orderItems, setOrderItems] = useState([]);
+  const [emailAddress, setEmailAddress] = useState("user@example.com");
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailError, setEmailError] = useState(null);
   const navigate = useNavigate();
   
   // Get order details from location state
@@ -385,6 +388,11 @@ function PaymentSuccessPage() {
               total: `$${total.toFixed(2)}`,
               paymentMethod: checkoutData.paymentMethod || "Visa •••• 4242"
             });
+            
+            // Check for email in checkout data
+            if (checkoutData.email) {
+              setEmailAddress(checkoutData.email);
+            }
           }
         }
         // Fallback to localStorage if items weren't passed via router or sessionStorage
@@ -432,50 +440,14 @@ function PaymentSuccessPage() {
   
   // Handle navigation to continue shopping
   const handleContinueShopping = () => {
+    window.scrollTo(0, 0);
     navigate('/shop/home');
   };
   
   // Handle navigation to product listing
   const handleViewMoreProducts = () => {
+    window.scrollTo(0, 0);
     navigate('/shop/listing');
-  };
-  
-  // Handle receipt download
-  const handleDownloadReceipt = () => {
-    // Get checkout data
-    const checkoutData = JSON.parse(localStorage.getItem('checkoutData') || '{}');
-    
-    // Create a simple text receipt
-    const receiptContent = `
-      Order Receipt
-      =============
-      Order #: ${orderNumber}
-      Date: March 10, 2025
-      
-      Items:
-      ${orderDetails.items.map(item => `- ${item.quantity}x ${item.name}: ${item.price}`).join('\n')}
-      
-      Subtotal: ${orderDetails.subtotal}
-      Shipping: ${orderDetails.shipping}
-      Tax: ${orderDetails.tax}
-      Total: ${orderDetails.total}
-      
-      Payment: ${orderDetails.paymentMethod}
-      
-      Ship to:
-      ${checkoutData.shippingAddress || 'Address from your account'}
-      
-      Thank you for your purchase!
-    `;
-    
-    // Create a downloadable file
-    const element = document.createElement('a');
-    const file = new Blob([receiptContent], {type: 'text/plain'});
-    element.href = URL.createObjectURL(file);
-    element.download = `receipt-${orderNumber}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
   };
   
   // Handle contact support
@@ -490,21 +462,68 @@ function PaymentSuccessPage() {
   };
   
   // Handle email subscription
-  const handleEmailSubscribe = () => {
-    setEmailSubscribed(true);
+  const handleEmailSubscribe = async () => {
+    setEmailSending(true);
+    setEmailError(null);
     
-    // Simulate sending a real notification email
-    console.log("Sending order notification email to user@example.com");
+    try {
+      // Simulate API call to send the email
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // In a real implementation, you would call an API endpoint here
+      // const response = await fetch('/api/send-order-email', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     email: emailAddress,
+      //     orderNumber: orderNumber,
+      //     orderDetails: orderDetails,
+      //     estimatedDelivery: estimatedDelivery,
+      //     type: 'order_confirmation'
+      //   })
+      // });
+      
+      // if (!response.ok) throw new Error('Failed to send email');
+      
+      console.log("Sending order notification email to", emailAddress);
+      console.log("Email content:", {
+        orderNumber,
+        orderItems: orderDetails.items,
+        total: orderDetails.total,
+        estimatedDelivery
+      });
+      
+      setEmailSubscribed(true);
+      setEmailSent(true);
+      
+      // Store email preference
+      localStorage.setItem('userEmail', emailAddress);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setEmailError("Failed to send email. Please try again.");
+    } finally {
+      setEmailSending(false);
+    }
+  };
+  
+  // Handle resend confirmation email
+  const handleResendEmail = async () => {
+    setEmailSending(true);
+    setEmailError(null);
     
-    // In a real implementation, you would call an API endpoint here
-    // fetch('/api/send-notification', {
-    //   method: 'POST',
-    //   body: JSON.stringify({
-    //     email: 'user@example.com',
-    //     orderNumber: orderNumber,
-    //     type: 'order_confirmation'
-    //   })
-    // });
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      console.log("Resending order confirmation email to", emailAddress);
+      alert(`Confirmation email resent to ${emailAddress}`);
+    } catch (error) {
+      setEmailError("Failed to resend email. Please try again.");
+    } finally {
+      setEmailSending(false);
+    }
   };
   
   // Generate recommended products based on purchased items
@@ -547,9 +566,10 @@ function PaymentSuccessPage() {
                 variant="outline" 
                 size="sm"
                 className="flex items-center"
-                onClick={handleDownloadReceipt}
+                onClick={handleResendEmail}
+                disabled={emailSending}
               >
-                <Download className="mr-1 w-4 h-4" /> Receipt
+                <Mail className="mr-1 w-4 h-4" /> Email Details
               </Button>
             </div>
           </div>
@@ -687,9 +707,9 @@ function PaymentSuccessPage() {
           <div className="mt-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-medium text-lg">Recommended For You</h3>
-              <Button variant="ghost" size="sm" className="flex items-center">
+              {/* <Button variant="ghost" size="sm" className="flex items-center">
                 <Filter className="w-4 h-4 mr-1" /> Filter
-              </Button>
+              </Button> */}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {suggestedProducts.map(product => (
@@ -733,12 +753,12 @@ function PaymentSuccessPage() {
                       <span className="text-sm font-medium">{product.price}</span>
                     )}
                   </div>
-                  <Button 
+                  {/* <Button 
                     size="sm" 
                     className="w-full mt-2 text-xs"
                   >
                     <ShoppingCart className="w-3 h-3 mr-1" /> Add to Cart
-                  </Button>
+                  </Button> */}
                 </div>
               ))}
             </div>
@@ -751,35 +771,84 @@ function PaymentSuccessPage() {
             </Button>
           </div>
           
-          {/* Email Alerts */}
-          {!emailSubscribed && (
+          {/* Email Notifications Section */}
+          {!emailSubscribed ? (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-medium mb-2">Stay updated with your order</h3>
               <p className="text-sm text-gray-600 mb-3">Receive notifications about your order status and delivery updates.</p>
+              {emailError && (
+                <div className="bg-red-50 text-red-600 p-2 mb-3 rounded text-sm border border-red-200">
+                  {emailError}
+                </div>
+              )}
               <div className="flex space-x-2">
                 <input 
                   type="email" 
                   placeholder="Your email address" 
                   className="flex-1 border rounded-md px-3 py-2 text-sm"
-                  defaultValue="user@example.com"
+                  value={emailAddress}
+                  onChange={(e) => setEmailAddress(e.target.value)}
                 />
-                <Button onClick={handleEmailSubscribe}>Subscribe</Button>
+                <Button 
+                  onClick={handleEmailSubscribe}
+                  disabled={emailSending}
+                >
+                  {emailSending ? "Sending..." : "Subscribe"}
+                </Button>
+              </div>
+              <div className="mt-2 text-xs text-gray-500 flex items-start">
+                <input type="checkbox" className="mr-2 mt-1" id="additionalEmails" />
+                <label htmlFor="additionalEmails">
+                  I'd also like to receive promotional emails about new products and exclusive offers
+                </label>
               </div>
             </div>
-          )}
-          
-          {emailSubscribed && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
-              <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-              <p className="text-sm">You're subscribed to order updates! We'll notify you when your order ships.</p>
+          ) : (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center mb-2">
+                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                <h3 className="font-medium">Email notifications enabled</h3>
+              </div>
+              
+              <p className="text-sm mb-3">
+                We've sent a confirmation email to <span className="font-medium">{emailAddress}</span>.
+                You'll receive updates about your order status and delivery.
+              </p>
+              
+              <div className="text-sm text-gray-600 mb-2 flex items-center">
+                <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                <span>Order confirmation email sent</span>
+              </div>
+              
+              <div className="text-sm text-gray-600 flex items-center">
+                <Clock className="w-4 h-4 text-blue-500 mr-2" />
+                <span>Shipping confirmation will be sent when your order ships</span>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={handleResendEmail}
+                disabled={emailSending}
+              >
+                {emailSending ? "Sending..." : "Resend confirmation email"}
+              </Button>
             </div>
           )}
         </CardContent>
         
         <CardFooter className="flex-col space-y-4">
-          <div className="text-sm text-gray-500 text-center">
-            We've sent a confirmation email to your registered email address
-          </div>
+          {emailSent ? (
+            <div className="text-sm text-green-600 text-center flex items-center justify-center">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Confirmation email sent to {emailAddress}
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500 text-center">
+              Subscribe to receive order updates via email
+            </div>
+          )}
           <div className="text-xs text-gray-400 text-center">
             If you have any questions, please contact our support team
           </div>
@@ -889,75 +958,7 @@ function PaymentSuccessPage() {
                     <p className="text-sm mt-1">Your order is being processed and packed</p>
                   </div>
                 </div>
-                
-                <div className="flex relative z-10">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-4">
-                    <Truck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Shipped</h3>
-                    <p className="text-sm text-gray-500">Estimated: March 12, 2025</p>
-                    <p className="text-sm mt-1">Your order will be handed to our shipping partner</p>
-                  </div>
-                </div>
-                
-                <div className="flex relative z-10">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-4">
-                    <MapPin className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Out for Delivery</h3>
-                    <p className="text-sm text-gray-500">Estimated: March 15, 2025</p>
-                    <p className="text-sm mt-1">Your order will be delivered to your address</p>
-                  </div>
-                </div>
               </div>
-            </div>
-            
-            
-            {/* Order receipt */}
-            <div className="border rounded-lg mb-6">
-              <div className="border-b p-4">
-                <h3 className="font-medium mb-3">Order Details</h3>
-                <div className="space-y-2">
-                  {orderDetails.items.map((item, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span>{item.quantity}x {item.name}</span>
-                      <span>{item.price}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="p-4">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span>{orderDetails.subtotal}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Shipping</span>
-                    <span>{orderDetails.shipping}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tax</span>
-                    <span>{orderDetails.tax}</span>
-                  </div>
-                  <div className="flex justify-between font-medium pt-2 border-t">
-                    <span>Total</span>
-                    <span>{orderDetails.total}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="border-t p-4 bg-gray-50">
-                <p className="text-sm text-gray-600">Payment Method</p>
-                <p className="text-sm">{orderDetails.paymentMethod}</p>
-              </div>
-            </div>
-            
-            <div className="mt-6 flex justify-end">
-              <Button variant="outline" onClick={() => setShowTrackingModal(false)}>
-                Close
-              </Button>
             </div>
           </div>
         </div>
@@ -966,4 +967,4 @@ function PaymentSuccessPage() {
   );
 }
 
-export default PaymentSuccessPage;
+export default PaymentSuccessPage
