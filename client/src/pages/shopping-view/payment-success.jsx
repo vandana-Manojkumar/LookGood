@@ -280,7 +280,6 @@
 
 
 
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -289,7 +288,7 @@ import {
   MapPin, Box, Clock, X, ShoppingCart, ArrowRight, Star,
   Share2, Download, Gift, Heart, Filter, Smartphone, Mail
 } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function PaymentSuccessPage() {
   const [showTrackingModal, setShowTrackingModal] = useState(false);
@@ -297,12 +296,19 @@ function PaymentSuccessPage() {
   const [showReviewPrompt, setShowReviewPrompt] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [orderItems, setOrderItems] = useState([]);
+  const navigate = useNavigate();
   
   // Get order details from location state
   const location = useLocation();
   
+  // Generate random order number
+  const generateOrderNumber = () => {
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    return `ORD-${randomNum}`;
+  };
+  
   // Order details
-  const orderNumber = location?.state?.orderId || "ORD-12345";
+  const [orderNumber, setOrderNumber] = useState(generateOrderNumber());
   const estimatedDelivery = "March 15, 2025";
   
   // Order details based on checkout information
@@ -318,80 +324,205 @@ function PaymentSuccessPage() {
   // Fetch order items from location state or local storage on component mount
   useEffect(() => {
     const fetchOrderData = () => {
-      if (location?.state?.orderItems) {
-        // If order items are passed via router state
-        const items = location.state.orderItems;
-        setOrderItems(items);
-        
-        // Calculate order details
-        const subtotal = items.reduce((sum, item) => 
-          sum + (item.price * item.quantity), 0
-        );
-        
-        const tax = subtotal * 0.07; // Assume 7% tax
-        const total = subtotal + tax;
-        
-        setOrderDetails({
-          items: items.map(item => ({
-            name: item.title,
-            quantity: item.quantity,
-            price: `$${item.price.toFixed(2)}`
-          })),
-          subtotal: `$${subtotal.toFixed(2)}`,
-          shipping: "$0.00",
-          tax: `$${tax.toFixed(2)}`,
-          total: `$${total.toFixed(2)}`,
-          paymentMethod: location.state.paymentMethod || "Visa •••• 4242"
-        });
-      } else {
-        // Fallback to localStorage if items weren't passed via router
-        const savedOrderItems = JSON.parse(localStorage.getItem('lastOrderItems') || '[]');
-        if (savedOrderItems.length > 0) {
-          setOrderItems(savedOrderItems);
+      try {
+        // First try to get data from location state
+        if (location?.state?.orderItems && location.state.orderItems.length > 0) {
+          console.log("Found order items in location state:", location.state.orderItems);
+          const items = location.state.orderItems;
+          setOrderItems(items);
           
-          // Calculate order details from saved items
-          const subtotal = savedOrderItems.reduce((sum, item) => 
-            sum + (item.price * item.quantity), 0
+          // Calculate order details
+          const subtotal = items.reduce((sum, item) => 
+            sum + (parseFloat(item.price) * item.quantity), 0
           );
           
-          const tax = subtotal * 0.07;
-          const total = subtotal + tax;
+          const shipping = location.state.shipping || 0;
+          const tax = subtotal * 0.07; // Assume 7% tax
+          const total = subtotal + tax + shipping;
           
           setOrderDetails({
-            items: savedOrderItems.map(item => ({
+            items: items.map(item => ({
               name: item.title,
               quantity: item.quantity,
-              price: `$${item.price.toFixed(2)}`
+              price: `$${(parseFloat(item.price) * item.quantity).toFixed(2)}`
             })),
             subtotal: `$${subtotal.toFixed(2)}`,
-            shipping: "$0.00",
+            shipping: shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`,
             tax: `$${tax.toFixed(2)}`,
             total: `$${total.toFixed(2)}`,
-            paymentMethod: localStorage.getItem('paymentMethod') || "Visa •••• 4242"
+            paymentMethod: location.state.paymentMethod || "Visa •••• 4242"
           });
+          
+          // Save this order to localStorage as a backup
+          localStorage.setItem('lastOrderItems', JSON.stringify(items));
+          if (location.state.paymentMethod) {
+            localStorage.setItem('paymentMethod', location.state.paymentMethod);
+          }
+        } 
+        // Try to get data from sessionStorage (alternative approach)
+        else if (sessionStorage.getItem('checkoutData')) {
+          console.log("Found checkout data in sessionStorage");
+          const checkoutData = JSON.parse(sessionStorage.getItem('checkoutData'));
+          if (checkoutData.items && checkoutData.items.length > 0) {
+            setOrderItems(checkoutData.items);
+            
+            const subtotal = checkoutData.subtotal || 
+              checkoutData.items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+            
+            const shipping = checkoutData.shipping || 0;
+            const tax = checkoutData.tax || (subtotal * 0.07);
+            const total = checkoutData.total || (subtotal + tax + shipping);
+            
+            setOrderDetails({
+              items: checkoutData.items.map(item => ({
+                name: item.title,
+                quantity: item.quantity,
+                price: `$${(parseFloat(item.price) * item.quantity).toFixed(2)}`
+              })),
+              subtotal: `$${subtotal.toFixed(2)}`,
+              shipping: shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`,
+              tax: `$${tax.toFixed(2)}`,
+              total: `$${total.toFixed(2)}`,
+              paymentMethod: checkoutData.paymentMethod || "Visa •••• 4242"
+            });
+          }
         }
+        // Fallback to localStorage if items weren't passed via router or sessionStorage
+        else {
+          console.log("Falling back to localStorage data");
+          const savedOrderItems = JSON.parse(localStorage.getItem('lastOrderItems') || '[]');
+          if (savedOrderItems.length > 0) {
+            setOrderItems(savedOrderItems);
+            
+            // Calculate order details from saved items
+            const subtotal = savedOrderItems.reduce((sum, item) => 
+              sum + (parseFloat(item.price) * item.quantity), 0
+            );
+            
+            const shipping = 0; // Default free shipping
+            const tax = subtotal * 0.07;
+            const total = subtotal + tax + shipping;
+            
+            setOrderDetails({
+              items: savedOrderItems.map(item => ({
+                name: item.title,
+                quantity: item.quantity,
+                price: `$${(parseFloat(item.price) * item.quantity).toFixed(2)}`
+              })),
+              subtotal: `$${subtotal.toFixed(2)}`,
+              shipping: shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`,
+              tax: `$${tax.toFixed(2)}`,
+              total: `$${total.toFixed(2)}`,
+              paymentMethod: localStorage.getItem('paymentMethod') || "Visa •••• 4242"
+            });
+          } else {
+            console.warn("No order data found in any storage mechanism");
+          }
+        }
+      } catch (error) {
+        console.error("Error processing order data:", error);
       }
+      
+      // Generate a new random order number on each order
+      setOrderNumber(generateOrderNumber());
     };
     
     fetchOrderData();
   }, [location]);
+  
+  // Handle navigation to continue shopping
+  const handleContinueShopping = () => {
+    navigate('/shop/home');
+  };
+  
+  // Handle navigation to product listing
+  const handleViewMoreProducts = () => {
+    navigate('/shop/listing');
+  };
+  
+  // Handle receipt download
+  const handleDownloadReceipt = () => {
+    // Get checkout data
+    const checkoutData = JSON.parse(localStorage.getItem('checkoutData') || '{}');
+    
+    // Create a simple text receipt
+    const receiptContent = `
+      Order Receipt
+      =============
+      Order #: ${orderNumber}
+      Date: March 10, 2025
+      
+      Items:
+      ${orderDetails.items.map(item => `- ${item.quantity}x ${item.name}: ${item.price}`).join('\n')}
+      
+      Subtotal: ${orderDetails.subtotal}
+      Shipping: ${orderDetails.shipping}
+      Tax: ${orderDetails.tax}
+      Total: ${orderDetails.total}
+      
+      Payment: ${orderDetails.paymentMethod}
+      
+      Ship to:
+      ${checkoutData.shippingAddress || 'Address from your account'}
+      
+      Thank you for your purchase!
+    `;
+    
+    // Create a downloadable file
+    const element = document.createElement('a');
+    const file = new Blob([receiptContent], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = `receipt-${orderNumber}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+  
+  // Handle contact support
+  const handleContactSupport = () => {
+    const supportInfo = {
+      phone: '8125875459',
+      email: 'manojvandana89@gmail.com'
+    };
+    
+    // Show support info in a modal or redirect to contact page
+    alert(`Contact our support team:\nPhone: ${supportInfo.phone}\nEmail: ${supportInfo.email}`);
+  };
+  
+  // Handle email subscription
+  const handleEmailSubscribe = () => {
+    setEmailSubscribed(true);
+    
+    // Simulate sending a real notification email
+    console.log("Sending order notification email to user@example.com");
+    
+    // In a real implementation, you would call an API endpoint here
+    // fetch('/api/send-notification', {
+    //   method: 'POST',
+    //   body: JSON.stringify({
+    //     email: 'user@example.com',
+    //     orderNumber: orderNumber,
+    //     type: 'order_confirmation'
+    //   })
+    // });
+  };
   
   // Generate recommended products based on purchased items
   const suggestedProducts = orderItems.length > 0 
     ? orderItems.map((item, index) => ({
         id: index + 1,
         name: `${item.title} Accessories`,
-        price: `$${(item.price * 0.5).toFixed(2)}`,
-        discountPrice: index % 2 === 0 ? `$${(item.price * 0.4).toFixed(2)}` : null,
+        price: `$${(parseFloat(item.price) * 0.5).toFixed(2)}`,
+        discountPrice: index % 2 === 0 ? `$${(parseFloat(item.price) * 0.4).toFixed(2)}` : null,
         image: item.image || "/api/placeholder/100/100",
         rating: (4 + Math.random()).toFixed(1),
         reviewCount: Math.floor(Math.random() * 200) + 50,
         badge: index % 3 === 0 ? "Best Seller" : index % 3 === 1 ? "New" : "Sale"
       })).slice(0, 3)
     : [
-        { id: 1, name: "Wireless Headphones", price: "$89.99", discountPrice: "$79.99", image: "/api/placeholder/100/100", rating: 4.7, reviewCount: 128, badge: "Best Seller" },
-        { id: 2, name: "Smart Watch", price: "$129.99", discountPrice: null, image: "/api/placeholder/100/100", rating: 4.5, reviewCount: 86, badge: "New" },
-        { id: 3, name: "Bluetooth Speaker", price: "$59.99", discountPrice: "$49.99", image: "/api/placeholder/100/100", rating: 4.8, reviewCount: 210, badge: "Sale" },
+        { id: 1, name: "Airdopes", price: "$89.99", discountPrice: "$79.99", image: "/images/boat.jpg", rating: 4.7, reviewCount: 128, badge: "Best Seller" },
+        { id: 2, name: "Smart Watch", price: "$129.99", discountPrice: null, image: "/images/fastrack.webp", rating: 4.5, reviewCount: 86, badge: "New" },
+        { id: 3, name: "shoes", price: "$59.99", discountPrice: "$49.99", image: "/images/Nikesh.png", rating: 4.8, reviewCount: 210, badge: "Sale" },
       ];
 
   return (
@@ -416,6 +547,7 @@ function PaymentSuccessPage() {
                 variant="outline" 
                 size="sm"
                 className="flex items-center"
+                onClick={handleDownloadReceipt}
               >
                 <Download className="mr-1 w-4 h-4" /> Receipt
               </Button>
@@ -501,6 +633,7 @@ function PaymentSuccessPage() {
             <Button 
               variant="outline" 
               className="flex items-center justify-center"
+              onClick={handleContinueShopping}
             >
               <Calendar className="mr-2 w-4 h-4" />
               Continue Shopping
@@ -509,6 +642,7 @@ function PaymentSuccessPage() {
             <Button 
               variant="outline" 
               className="flex items-center justify-center"
+              onClick={handleContactSupport}
             >
               <Mail className="mr-2 w-4 h-4" />
               Contact Support
@@ -557,25 +691,31 @@ function PaymentSuccessPage() {
                 <Filter className="w-4 h-4 mr-1" /> Filter
               </Button>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {suggestedProducts.map(product => (
-                <div key={product.id} className="border rounded-lg p-3 hover:shadow-md transition-shadow relative">
-                  {product.badge && (
-                    <span className={`absolute top-2 left-2 text-xs font-medium py-1 px-2 rounded-full ${
-                      product.badge === 'Sale' ? 'bg-red-100 text-red-800' : 
-                      product.badge === 'New' ? 'bg-blue-100 text-blue-800' : 
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {product.badge}
-                    </span>
-                  )}
+                <div key={product.id} className="border rounded-lg p-3 hover:shadow-md transition-shadow">
                   <div className="relative">
-                    <img src={product.image} alt={product.name} className="mx-auto mb-2" />
-                    <button className="absolute top-0 right-0 p-1 text-gray-400 hover:text-red-500">
-                      <Heart className="w-4 h-4" />
-                    </button>
+                    {product.badge && (
+                      <span className={`absolute top-2 left-2 text-xs font-bold py-1 px-2 rounded-full z-10 ${
+                        product.badge === 'Sale' ? 'bg-red-100 text-red-800' : 
+                        product.badge === 'New' ? 'bg-blue-100 text-blue-800' : 
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {product.badge}
+                      </span>
+                    )}
+                    <div className="relative h-24 flex items-center justify-center">
+                      <img 
+                        src={product.image} 
+                        alt={product.name} 
+                        className="max-h-full max-w-full object-contain" 
+                      />
+                      <button className="absolute top-0 right-0 p-1 text-gray-400 hover:text-red-500">
+                        <Heart className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <h4 className="font-medium text-sm truncate">{product.name}</h4>
+                  <h4 className="font-medium text-sm truncate mt-2">{product.name}</h4>
                   <div className="flex items-center mt-1">
                     <div className="flex">
                       <Star className="w-3 h-3 text-yellow-400" fill="#FBBF24" />
@@ -605,6 +745,7 @@ function PaymentSuccessPage() {
             <Button 
               variant="link" 
               className="mt-4 flex items-center mx-auto"
+              onClick={handleViewMoreProducts}
             >
               View more products <ArrowRight className="ml-1 w-4 h-4" />
             </Button>
@@ -622,7 +763,7 @@ function PaymentSuccessPage() {
                   className="flex-1 border rounded-md px-3 py-2 text-sm"
                   defaultValue="user@example.com"
                 />
-                <Button onClick={() => setEmailSubscribed(true)}>Subscribe</Button>
+                <Button onClick={handleEmailSubscribe}>Subscribe</Button>
               </div>
             </div>
           )}
@@ -772,6 +913,7 @@ function PaymentSuccessPage() {
                 </div>
               </div>
             </div>
+            
             
             {/* Order receipt */}
             <div className="border rounded-lg mb-6">

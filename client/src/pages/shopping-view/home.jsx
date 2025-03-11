@@ -391,7 +391,6 @@ function ShoppingHome() {
     };
     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
     window.scrollTo(0, 0);
-    window.scrollTo(0, 0);
     navigate(`/shop/listing`);
   }
 
@@ -424,7 +423,6 @@ function ShoppingHome() {
     const timer = setInterval(() => {
       setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length);
     }, 3000);
-    }, 3000);
     return () => clearInterval(timer);
   }, [featureImageList]);
 
@@ -441,6 +439,7 @@ function ShoppingHome() {
     dispatch(getFeatureImages());
   }, [dispatch]);
 
+
   useEffect(() => {
     dispatch(getFeatureImages());
   }, [dispatch]);
@@ -448,24 +447,18 @@ function ShoppingHome() {
     setUniqueKeys([Date.now(), Date.now() + 1]);
   }, []);
 
+
   return (
     
 
-    <div className="flex flex-col min-h-screen">
+
+
+
+    <div className="mt-20 flex flex-col min-h-screen">
       {/* Hero Slider Section */}
-      <div className="  relative w-full h-auto min-h-[250px] sm:min-h-[350px] md:min-h-[500px] lg:min-h-[600px] overflow-hidden ">
       <div className="  relative w-full h-auto min-h-[250px] sm:min-h-[350px] md:min-h-[500px] lg:min-h-[600px] overflow-hidden ">
         {featureImageList && featureImageList.length > 0
           ? featureImageList.map((slide, index) => (
-            <img
-            src={slide?.image}
-            key={index}
-            className={`${
-              index === currentSlide ? "opacity-100" : "opacity-0"
-            } absolute top-0 left-0 w-full h-full object-contain transition-opacity duration-1000`}
-            alt={`Slide ${index + 1}`}
-          />
-          
             <img
             src={slide?.image}
             key={index}
@@ -488,7 +481,6 @@ function ShoppingHome() {
             )
           }
           className="absolute top-1/2 left-2 sm:left-4 transform -translate-y-1/2 bg-white/80 w-8 h-8 sm:w-10 sm:h-10"
-          className="absolute top-1/2 left-2 sm:left-4 transform -translate-y-1/2 bg-white/80 w-8 h-8 sm:w-10 sm:h-10"
         >
           <ChevronLeftIcon className="w-4 h-4" />
         </Button>
@@ -501,7 +493,6 @@ function ShoppingHome() {
             )
           }
           className="absolute top-1/2 right-2 sm:right-4 transform -translate-y-1/2 bg-white/80 w-8 h-8 sm:w-10 sm:h-10"
-          className="absolute top-1/2 right-2 sm:right-4 transform -translate-y-1/2 bg-white/80 w-8 h-8 sm:w-10 sm:h-10"
         >
           <ChevronRightIcon className="w-4 h-4" />
         </Button>
@@ -513,15 +504,9 @@ function ShoppingHome() {
 
 {/* 1st vedio section */}
 
-
-
-{/* 1st vedio section */}
-
-      
-<div>
-        <VideoSection uniqueKey={uniqueKeys[0]} numAds={1} />
+       <div>
+        <VideoSection uniqueKey={uniqueKeys[0]} numAds={1} />
       </div>
-
 
 
 
@@ -576,9 +561,8 @@ function ShoppingHome() {
 
    {/* 2nd vedio section     */}
    <div>
-        <VideoSection uniqueKey={uniqueKeys[1]} numAds={1} />
+        <VideoSection uniqueKey={uniqueKeys[1]} numAds={1} />
       </div>
-
 
 
       {/* Featured Products Section */}

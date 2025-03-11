@@ -23,7 +23,6 @@ import UserCartWrapper from "./cart-wrapper";
 import { useEffect, useState, useRef } from "react";
 import { fetchCartItems } from "@/store/shop/cart-slice";
 import { Label } from "../ui/label";
-import { X } from 'lucide-react';
 
 // Modified MenuItems component with proper closing mechanism
 const MenuItems = ({ onClose, isInSheet }) => {
@@ -55,10 +54,6 @@ const MenuItems = ({ onClose, isInSheet }) => {
       setSearchParams({ category: getCurrentMenuItem.id });
     } else {
       navigate(getCurrentMenuItem.path);
-      // Ensure menu closes
-      if (onClose) {
-        onClose();
-      }
     }
 
     // Ensure menu closes - use appropriate method based on context
@@ -71,6 +66,7 @@ const MenuItems = ({ onClose, isInSheet }) => {
     setClickedItem(getCurrentMenuItem.id);
     setTimeout(() => setClickedItem(null), 500);
   }
+
   return (
     <nav className="flex flex-col mb-3 lg:mb-0 lg:items-center gap-6 lg:flex-row">
       {shoppingViewHeaderMenuItems.map((menuItem) => (

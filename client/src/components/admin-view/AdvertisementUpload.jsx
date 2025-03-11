@@ -4,7 +4,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import axios from "axios";
 import { addProductFormElements } from "@/config"; // Import the config file
-const backendUrl = "https://lookgood.onrender.com0"
+const backendUrl = "http://localhost:5000"
 
 function AdvertisementUpload() {
   const [videoFile, setVideoFile] = useState(null);
