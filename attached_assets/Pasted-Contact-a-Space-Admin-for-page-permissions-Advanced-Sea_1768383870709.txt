@@ -1,0 +1,315 @@
+Contact a Space Admin for page permissions      ·       *** Advanced Search ***       
+Skip to sidebar
+Skip to main content
+Skip to breadcrumbs
+Skip to search
+Linked Applications
+Confluence
+Spaces
+People
+Calendars
+Analytics
+Create
+
+Search
+Help
+5
+
+
+
+
+
+Configure
+Claude Code Setup Guide - LiteLLM Integration
+ View inline comments
+
+ Save for later Watch Share
+Pages… UKG Large Language Models Hub
+1 Jira link
+Analytics
+Created by Henry Muniz Romero, last updated by Robert Hencke yesterday at 11:56 AM  8 minute read
+Overview
+This guide provides step-by-step instructions for UKG engineers to install and configure Claude Code (Claude CLI) to work with Large Language Models (LLMs) through LiteLLM.
+
+Prerequisites
+Before you begin, ensure you have:
+
+UKG employee access and valid credentials
+Development environment (macOS or Windows)
+Basic familiarity with command line tools
+Note: Support can be found in #help-litellm
+
+Step 1: Obtain Access to LiteLLM
+You will need an account on LiteLLM (https://sdlc-llm.ukg.int/ui/).
+
+If you have a GitHub account: Request an email invite using this workflow and selecting "Claude": https://github.com/UKGEPIC/service/actions/workflows/ai-assistant.yaml. This will send you an invitation email.
+If you do not have a GitHub Account: Request an email invite through https://jenkins-citeam.dev.mykronos.com/job/claude-enrollment/ and choosing "Build Now" on the left.  This will send you an invitation email.
+Service account logins are not supported.
+
+Instead, use LiteLLM's "Service Account" virtual keys: Creating LiteLLM Service Account Keys for Automation
+
+
+
+Once you have an account on LiteLLM, you will need to create a Virtual Key to access LiteLLM through Claude Code.
+
+Creating a Virtual Key
+Log in to the LiteLLM UI: https://sdlc-llm.ukg.int/ui
+Click "Virtual Keys", then "Create New Key":
+
+IMPORTANT: You must choose the key settings as specified below or your key will not work.  Use these settings:
+Owned By: You
+Team: <select your pillar team>
+Key Name: <use your UKG email address>
+Models: All Team Models
+Key Type: Default
+Leave all other settings as defaults.
+Click "Create Key".  Your new virtual key will be shown to you.
+IMPORTANT: Save your virtual key somewhere safe, like Keeper.  You will only be shown your key once.
+
+
+macOS
+Windows
+Step 2. Configure Claude Code for LiteLLM
+To connect to Claude Code, you need to configure it to trust UKG certificate authorities.
+
+Download the following file and place it in your .claude folder in your home folder: ukg.pem (last updated 06 Jan 2026)
+
+(If a .claude folder does not exist in your home folder, please create it)
+
+Next, configure your shell.  Replace <YOUR_LITELLM_KEY> with the key you generated in step 1.
+
+Bash
+Zsh
+Fish
+Edit ~/.bashrc with your favorite text editor, adding or updating the following environment variables.
+
+
+
+export CLAUDE_CODE_USE_VERTEX=0
+export NODE_EXTRA_CA_CERTS="$HOME/.claude/ukg.pem"
+export ANTHROPIC_BASE_URL="https://sdlc-llm.ukg.int"
+export ANTHROPIC_AUTH_TOKEN="<YOUR_LITELLM_KEY>"
+export ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-4-5
+export ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-haiku-4-5
+export ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-4-5
+export ANTHROPIC_MODEL=claude-sonnet-4-5
+export DISABLE_AUTOUPDATER=1
+export CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1
+Save your changes, and then run the following command to refresh your shell session.
+
+
+
+source ~/.bashrc
+
+
+ Verification
+
+After making these changes, verify your configuration: 
+
+
+
+# Verify environment variables
+echo $ANTHROPIC_BASE_URL
+Step 3: Install Claude CLI
+npm Installation
+
+
+# Install via npm (requires Node.js).  Must be 2.0.36 due to https://github.com/BerriAI/litellm/issues/16679
+npm install -g @anthropic-ai/claude-code@2.0.36
+
+# Verify installation
+claude --version
+Step 4: Install Claude Code for VS Code (Optional)
+If you are a user of Visual Studio Code, you can also access all the benefits of Claude Code, integrated into your IDE.
+
+Install the "Claude Code for VS Code" extension: https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code
+
+If Claude Code does not detect your environment, you can edit your Settings JSON to correct this as follows:
+
+
+
+{
+    // ...
+    "claudeCode.environmentVariables": [
+        {"name": "CLAUDE_CODE_USE_VERTEX", "value": "0"},
+        {"name": "NODE_EXTRA_CA_CERTS", "value": "/Users/YOU/.claude/ukg.pem"},
+        {"name": "ANTHROPIC_BASE_URL", "value": "https://sdlc-llm.ukg.int"},
+        {"name": "ANTHROPIC_AUTH_TOKEN", "value": "<YOUR_LITELLM_KEY>"},
+        {"name": "ANTHROPIC_DEFAULT_SONNET_MODEL", "value": "claude-sonnet-4-5"},
+        {"name": "ANTHROPIC_DEFAULT_HAIKU_MODEL", "value": "claude-haiku-4-5"},
+        {"name": "ANTHROPIC_DEFAULT_OPUS_MODEL", "value": "claude-opus-4-5"},
+        {"name": "ANTHROPIC_MODEL", "value": "claude-sonnet-4-5"},
+        {"name": "DISABLE_AUTOUPDATER", "value": "1"},
+        {"name": "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS", "value": "1"}
+    ]
+    // ...
+}
+Step 5: Test Your Setup
+Basic Connectivity Test
+
+
+# Test basic Claude CLI functionality
+claude --version
+claude "Please confirm you are using Claude Sonnet 4.5"
+Interactive Test
+
+
+# Start Claude CLI in interactive mode
+claude
+
+# Try a simple prompt
+> Hello, can you help me test this connection?
+Visual Studio Code Test (Optional)
+If you installed Claude Code for VS Code, you can test it by opening any file, and looking for the Claude icon in the upper right (orange asterisk).  Click this, and you will have access to Claude Code in Visual Studio Code.
+
+Try a simple prompt, such as "What is this file?"
+
+
+
+To setup MCP servers with Claude-Code see Confluence, Jira and EPIC Roster MCP Servers Configuration
+
+Available Models
+The following models are available:
+
+claude-haiku-4-5	
+Anthropic's latest small, fast, and cost-efficient AI model.
+
+claude-opus-4-5	
+Anthropic's most advanced and capable frontier model, offering the highest level of intelligence and performance for complex reasoning, analysis, and creative tasks.
+
+claude-sonnet-4-5	
+Anthropic's most powerful model for powering real-world agents, with industry leading capabilities around coding, computer use, cybersecurity, and working with office files like spreadsheets.
+
+claude-sonnet-4-5[1m]	
+as above, with 1 million tokens of input context.
+
+claude-sonnet-4	
+Anthropic's mid-size model with superior intelligence for high-volume uses in coding, in-depth research, agents, & more.
+
+claude-sonnet-4[1m]	
+as above, with 1 million tokens of input context.
+
+gemini-2.5-pro	
+Gemini 2.5 Pro is a powerful, advanced AI model developed by Google that excels at complex reasoning across different types of information, including text, images, audio, and video
+
+gemini-2.5-flash	
+Gemini 2.0 Flash is a fast, efficient, multimodal AI model from Google DeepMind designed for speed and low-latency applications like summarization and data extraction.
+
+gemini-3-pro-preview	
+Gemini 3 Pro is Google's latest frontier AI model.
+
+*1M token context window is in beta and requires special configuration.
+
+Model Selection
+You can specify a model using the --model flag when starting Claude Code:
+
+claude --model claude-sonnet-4
+claude --model claude-sonnet-4-5
+Future Enhancements
+We are considering adding MCP servers to LiteLLM to enable usage tracking: PS-673865 - POC: Add MCP Servers to SDLC-LLM Proxy Closed
+Support for more agents.  For now, please refer to Lawrence Wu 's guide at 2025-09-08 How to Setup and use Coding Agents (claude code, codex, gemini-cli)
+Troubleshooting
+Common Issues and Solutions
+Authentication Issues
+Ensure you replaced the placeholder <YOUR_LITELLM_KEY> with your actual key in step 2.  Do not include the < > brackets.
+Ensure you used a Virtual Key generated in Step 1, and not your password.
+Ensure you downloaded ukg.pem and placed it in your .claude  folder, and updated NODE_EXTRA_CA_CERTS to the absolute path to this file.
+Error Messages
+If you see: "API Error: 400 {"error":{"message":"{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"`clear_thinking_20251015` strategy requires `thinking` to be enabled\"},\"request_id\":\"req_vrtx_011CVFfS8G9yZXLi6cLcK7HH\"}. Received Model Group=claude-sonnet-4-5\nAvailable Model Group Fallbacks=None","type":"None","param":"None","code":"400"}}":
+You disabled Claude's 'Thinking' mode.  Press 'Tab' to re-enable Claude 'Thinking'.  'Thinking' must be enabled for Claude to work with LiteLLM.
+If you see "API Error: 400 {"error":{"message":"{"message":"tools.3.custom.input_examples: Extra inputs are not permitted"}. Received Model Group=claude-sonnet-4-5-20250929\nAvailable Model Group Fallbacks=None","type":"None","param":"None","code":"400"}}":
+Your version of Claude is too recent.  Due to the unresolved LiteLLM issue https://github.com/BerriAI/litellm/issues/16679, Claude Code MUST currently be v2.0.36.
+If you are using Homebrew, first uninstall Claude Code with brew uninstall claude-code.
+You must have Node installed to the latest LTS version.
+Install the correct Claude version with npm install -g @anthropic-ai/claude-code@2.0.36.
+You must update your environment variables to set DISABLE_AUTOUPDATER to 1.  See above for guidance for your platform/shell.
+If you don't do this, Claude will silently update itself and your installation will be broken again.
+If you are unable to delete or modify your LiteLLM key, this is an unfortunate temporary limitation due to https://ukginc.slack.com/archives/C09R2C8BWHJ/p1765573194066889. 
+For now, please file a SUP ticket for us and we we will delete/modify any keys you need.
+If you are unable to use the Gemini models with Claude Code, this is a known limitation we hope to address in a future LiteLLM upgrade.  We will announce when this is supported.
+If you are trying to log in using SSO, please note this is unsupported at this time, unfortunately.
+If you do not receive an invitation email, or your invitation expires, simply re-run https://github.com/UKGEPIC/service/actions/workflows/ai-assistant.yaml selecting "Claude" and you will receive a password reset email that will suffice.
+LiteLLM does not yet support Claude Sonnet with 1m context tokens.
+If you receive API Error: 400 {"error":{"message":"{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"tools.3.custom.input_examples: Extra inputs are not permitted\"},\"request_id\":\"req_vrtx_011CVD5s2A2bjbbsawBhYTpF\"}. Received Model Group=claude-sonnet-4-5\nAvailable Model Group Fallbacks=None","type":"None","param":"None","code":"400"}}
+
+Close Claude
+Remove ~/.claude/statsig
+Restart Claude
+If you receive an error about Unable to verify if domain X is safe to fetch.  This may be due to network restrictions or enterprise security policies blocking claude.ai. 
+Download the latest ukg.pem  from this page.
+Replace your old ukg.pem with it.
+Restart Claude Code.
+Windows-Specific Issues
+PowerShell Execution Policy
+
+
+
+# If PowerShell scripts are blocked
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+PATH Issues
+
+
+
+# Check if claude is in PATH
+where.exe claude
+
+# Add to PATH if needed (replace with actual path)
+$env:PATH += ";C:\path\to\claude\directory"
+Environment Variables Not Persisting
+
+Use setx command instead of set for permanent variables
+Or set through Windows GUI (System Properties > Environment Variables)
+Restart Command Prompt/PowerShell after setting variables
+Getting Help
+If you encounter issues:
+
+Check the logs: claude --debug
+Verify environment: Run configuration verification commands above
+Contact Support: SDLC Engineering Team: #help-github
+Best Practices
+Security
+Never commit API keys or credentials to version control
+Use environment variables for all configuration
+Regularly rotate access tokens and credentials
+Follow least privilege principle for IAM roles
+Performance
+Use appropriate models for your use case (Haiku for simple tasks, Sonnet for complex)
+Monitor token usage to control costs
+Cache responses when appropriate
+Use regional endpoints for better latency
+Resources
+Documentation
+Claude CLI Official Documentation
+Support Channels
+SDLC Engineering: #help-github
+General: #claude-code
+LiteLLM:
+#help-litellm
+#litellm
+We are not monitoring this page's comments for support.
+
+Please use one of the above support channels, instead.
+
+
+
+(**) Recommended
+
+Like7 people like this
+No labelsEdit Labels
+2 Comments
+terri.mason@ukg.com
+Terri Mason
+Dec 10, 2025 
+Hi Everyone - best way to get help is to either file a SUP ticket or ask in the #help-litellm slack channel. Comments here are not regularly monitored.
+
+ReplyLike2 people like this
+lucky.jindalverma@ukg.com
+Lucky Jindal
+Jan 08, 2026 
+Henry Muniz Romero  this ukg.pem certifcate file (attached on page)  wont work . I was having issues and once i replaced it, it worked instantly.
+
+ReplyLike
+User icon: Add a picture of yourself
+Write a comment...
+Powered by Atlassian Confluence 9.2.5 (node2: d6b5c2e4) Report a bug Atlassian News
+Atlassian

@@ -1,0 +1,59 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+server/public
+*.tar.gz
+
+# Environment variables (CRITICAL - Contains API keys and secrets!)
+.env
+.env.local
+.env.*.local
+
+# SSL Certificates and Keys (CRITICAL - Corporate certs!)
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs and debug files
+*.log
+debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local data and cache
+.local/
+.cache/
+.temp/
+*.sqlite
+*.sqlite3
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Vite specific
+vite.config.ts.*
+
+# Test scripts (may contain credentials)
+test-api.ps1
+refresh-path.ps1
+
+# MCP servers (may contain local configs)
+mcp-servers/
