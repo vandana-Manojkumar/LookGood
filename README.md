@@ -41,12 +41,12 @@ The app will be available at `http://localhost:5000`
 Enable AI-powered analysis with **LiteLLM** for intelligent code descriptions:
 
 ### Supported AI Providers (via LiteLLM)
-- ✅ **OpenAI** (GPT-4o, GPT-4o-mini, GPT-3.5)
-- ✅ **Anthropic** (Claude 3 Opus, Sonnet, Haiku)
-- ✅ **Google** (Gemini Pro, Gemini 1.5)
-- ✅ **Azure OpenAI**
-- ✅ **AWS Bedrock**
-- ✅ **100+ other models**
+- **OpenAI** (GPT-4o, GPT-4o-mini, GPT-3.5)
+- **Anthropic** (Claude 3 Opus, Sonnet, Haiku)
+- **Google** (Gemini Pro, Gemini 1.5)
+- **Azure OpenAI**
+- **AWS Bedrock**
+- **100+ other models**
 
 ### Quick Setup
 
