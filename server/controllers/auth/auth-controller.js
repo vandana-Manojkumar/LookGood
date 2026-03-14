@@ -4,6 +4,59 @@ const User = require("../../models/User");
 
 //register
 const registerUser = async (req, res) => {
+  try {
+    const { userName, email, password } = req.body;
+
+    // Validate username length
+    if (!userName || userName.length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: "Username must be at least 3 characters long"
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format"
+      });
+    }
+
+    // Validate password strength
+    if (!password || password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long"
+      });
+    }
+    if (!/[A-Z]/.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least one uppercase letter"
+      });
+    }
+    if (!/[a-z]/.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least one lowercase letter"
+      });
+    }
+    if (!/[0-9]/.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least one number"
+      });
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least one special character"
+      });
+    }
+
+    // Continue with existing registration logic
   const { userName, email, password } = req.body;
 
   try {
