@@ -10,16 +10,22 @@ const initialState = {
 export const registerUser = createAsyncThunk(
   "/auth/register",
 
-  async (formData) => {
-    const response = await axios.post(
-      `https://lookgood.onrender.com/api/auth/register`,
-      formData,
-      {
-        withCredentials: true,
-      }
-    );
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `https://lookgood.onrender.com/api/auth/register`,
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Registration failed" }
+      );
+    }
   }
 );
 
